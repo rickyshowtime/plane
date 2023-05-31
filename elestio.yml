@@ -40,6 +40,8 @@ environments:
     value: "[EMAIL]"
   - key: "ADMIN_PASSWORD"
     value: "random_password"
+  - key: "SECRET_KEY"
+    value: "random_password"
   - key: "EMAIL_HOST"
     value: "172.17.0.1"
   - key: "EMAIL_PORT"
