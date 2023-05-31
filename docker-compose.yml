@@ -28,7 +28,7 @@ services:
       EMAIL_HOST_USER: ${EMAIL_HOST_USER}
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM: "Team Plane <${EMAIL_FROM}>"
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -51,7 +51,6 @@ services:
       - 172.17.0.1:8845:8000
 
   plane-worker:
-    container_name: planerqworker
     image: makeplane/plane-worker:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/worker
@@ -63,7 +62,7 @@ services:
       EMAIL_HOST_USER: ${EMAIL_HOST_USER}
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM: "Team Plane <${EMAIL_FROM}>"
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -85,7 +84,6 @@ services:
       - plane-redis
 
   plane-db:
-    container_name: plane-db
     image: postgres:15.2-alpine
     restart: always
     command: postgres -c 'max_connections=1000'
@@ -97,14 +95,12 @@ services:
       - ./pgdata:/var/lib/postgresql/data
 
   plane-redis:
-    container_name: plane-redis
     image: redis:6.2.7-alpine
     restart: always
     volumes:
       - ./redisdata:/data
 
   plane-minio:
-    container_name: plane-minio
     image: minio/minio
     volumes:
       - ./uploads:/export

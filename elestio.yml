@@ -45,7 +45,7 @@ environments:
   - key: "EMAIL_PORT"
     value: "25"
   - key: "EMAIL_FROM"
-    value: "Team Plane <[DOMAIN]@vm.elestio.app>"
+    value: "[DOMAIN]@vm.elestio.app"
   - key: "FILE_SIZE_LIMIT"
     value: "5242880"
   - key: "AWS_ACCESS_KEY_ID"
