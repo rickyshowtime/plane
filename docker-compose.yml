@@ -34,7 +34,7 @@ x-api-and-worker-env: &api-and-worker-env
 
 services:
   planefrontend:
-    image: makeplane/plane-frontend:latest
+    image: makeplane/plane-frontend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /usr/local/bin/start.sh apps/app/server.js app
     env_file:
@@ -55,7 +55,7 @@ services:
       - plane-worker
 
   planebackend:
-    image: makeplane/plane-backend:latest
+    image: makeplane/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/takeoff
     env_file:
@@ -67,7 +67,7 @@ services:
       - plane-redis
 
   plane-worker:
-    image: makeplane/plane-worker:latest
+    image: makeplane/plane-worker:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/worker
     env_file:
@@ -80,7 +80,7 @@ services:
       - plane-redis
 
   plane-beat-worker:
-    image: makeplane/plane-worker:latest
+    image: makeplane/plane-worker:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/beat
     env_file:
@@ -137,7 +137,7 @@ services:
 
   # Comment this if you already have a reverse proxy running
   plane-proxy:
-    image: makeplane/plane-proxy:latest
+    image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
     ports:
       - 172.17.0.1:2845:80
     env_file:
