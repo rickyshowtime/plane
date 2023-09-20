@@ -137,7 +137,7 @@ services:
 
   # Comment this if you already have a reverse proxy running
   plane-proxy:
-    image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
+    image: elestio4test/plane-proxy:${SOFTWARE_VERSION_TAG}
     ports:
       - 172.17.0.1:2845:80
     env_file:
