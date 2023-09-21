@@ -97,7 +97,7 @@ services:
     restart: always
     command: postgres -c 'max_connections=1000'
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ${folderName}/pgdata:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
@@ -112,14 +112,14 @@ services:
     image: elestio/redis:6.0
     restart: always
     volumes:
-      - ./redisdata:/data
+      - ${folderName}/redisdata:/data
 
   plane-minio:
     image: minio/minio
     restart: always
     command: server /export --console-address ":9090"
     volumes:
-      - ./uploads:/export
+      - ${folderName}/uploads:/export
     env_file:
       - .env
     environment:
@@ -137,7 +137,7 @@ services:
 
   # Comment this if you already have a reverse proxy running
   plane-proxy:
-    image: elestio4test/plane-proxy:${SOFTWARE_VERSION_TAG}
+    image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
     ports:
       - 172.17.0.1:2845:80
     env_file:
@@ -146,7 +146,7 @@ services:
       FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
       BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${folderName}/nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - planefrontend
       - planebackend
@@ -161,4 +161,4 @@ services:
     ports:
       - "172.17.0.1:8145:8080"
     volumes:
-      - ./servers.json:/pgadmin4/servers.json
+      - ${folderName}/servers.json:/pgadmin4/servers.json
