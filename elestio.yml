@@ -45,7 +45,7 @@ environments:
   - key: "NEXT_PUBLIC_API_BASE_URL"
     value: "https://[CI_CD_DOMAIN]"
   - key: "SOFTWARE_VERSION_TAG"
-    value: "latest"
+    value: "0.11"
   - key: "PGDATABASE"
     value: "plane"
   - key: "PGUSER"
