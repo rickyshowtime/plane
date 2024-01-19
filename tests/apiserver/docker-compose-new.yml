@@ -34,7 +34,7 @@ x-api-and-worker-env: &api-and-worker-env
 
 services:
   planefrontend:
-    image: makeplane/plane-frontend:${SOFTWARE_VERSION_TAG}
+    image: plane-web:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /usr/local/bin/start.sh apps/app/server.js app
     env_file:
@@ -55,7 +55,7 @@ services:
       - plane-worker
 
   planebackend:
-    image: elestio4test/plane-apiserver:${SOFTWARE_VERSION_TAG}
+    image: plane-api:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/takeoff
     env_file:
@@ -67,7 +67,7 @@ services:
       - plane-redis
 
   plane-worker:
-    image: elestio4test/plane-apiserver:${SOFTWARE_VERSION_TAG}
+    image: plane-api:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/worker
     env_file:
@@ -80,7 +80,7 @@ services:
       - plane-redis
 
   plane-beat-worker:
-    image: elestio4test/plane-apiserver:${SOFTWARE_VERSION_TAG}
+    image: plane-api:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/beat
     env_file:
@@ -97,11 +97,11 @@ services:
     restart: always
     command: postgres -c 'max_connections=1000'
     volumes:
-      - ${folderName}/pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
-      - 172.17.0.1:2489:5432
+      - 2489:5432
     environment:
       POSTGRES_USER: ${PGUSER}
       POSTGRES_DB: ${PGDATABASE}
@@ -112,41 +112,41 @@ services:
     image: elestio/redis:6.0
     restart: always
     volumes:
-      - ${folderName}/redisdata:/data
+      - ./redisdata:/data
 
   plane-minio:
     image: minio/minio
     restart: always
     command: server /export --console-address ":9090"
     volumes:
-      - ${folderName}/uploads:/export
+      - ./uploads:/export
     env_file:
       - .env
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
 
-  createbuckets:
-    image: minio/mc
-    entrypoint: >
-      /bin/sh -c " /usr/bin/mc config host add plane-minio http://plane-minio:9000 \$AWS_ACCESS_KEY_ID \$AWS_SECRET_ACCESS_KEY; /usr/bin/mc mb plane-minio/\$AWS_S3_BUCKET_NAME; /usr/bin/mc anonymous set download plane-minio/\$AWS_S3_BUCKET_NAME; exit 0; "
-    env_file:
-      - .env
-    depends_on:
-      - plane-minio
+  # createbuckets:
+  #   image: minio/mc
+  #   entrypoint: >
+  #     /bin/sh -c " /usr/bin/mc config host add plane-minio http://plane-minio:9000 \$AWS_ACCESS_KEY_ID \$AWS_SECRET_ACCESS_KEY; /usr/bin/mc mb plane-minio/\$AWS_S3_BUCKET_NAME; /usr/bin/mc anonymous set download plane-minio/\$AWS_S3_BUCKET_NAME; exit 0; "
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - plane-minio
 
   # Comment this if you already have a reverse proxy running
   plane-proxy:
-    image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
+    image: plane-ng:${SOFTWARE_VERSION_TAG}
     ports:
-      - 172.17.0.1:2845:80
+      - 2845:80
     env_file:
       - .env
     environment:
       FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
       BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
     volumes:
-      - ${folderName}/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - planefrontend
       - planebackend
@@ -159,6 +159,6 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
       PGADMIN_LISTEN_PORT: 8080
     ports:
-      - "172.17.0.1:8145:8080"
+      - "8145:8080"
     volumes:
-      - ${folderName}/servers.json:/pgadmin4/servers.json
+      - ./servers.json:/pgadmin4/servers.json
