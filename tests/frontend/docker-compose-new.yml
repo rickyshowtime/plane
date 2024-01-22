@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: makeplane/plane-frontend
+    image: elestio4test/plane-frontend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /usr/local/bin/start.sh web/server.js web
     depends_on:

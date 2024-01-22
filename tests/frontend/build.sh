@@ -2,9 +2,7 @@
 rm .env.example
 rm Dockerfile
 rm docker-compose.yml
-mv .eslintrc.js .eslintrc.js.back
-mv package.json package.json.back
-cp -f ./web/Dockerfile ./
+cp -f ./web/Dockerfile.web ./
 mv Dockerfile.web Dockerfile
 mv docker-compose-new.yml docker-compose.yml
 
