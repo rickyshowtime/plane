@@ -2,13 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: plane-web
-    # container_name: web
-    # build:
-    #   context: .
-    #   dockerfile: plane-web
-    #   args:
-    #     DOCKER_BUILDKIT: 1
+    image: makeplane/plane-frontend
     restart: always
     command: /usr/local/bin/start.sh web/server.js web
     depends_on:
@@ -17,12 +11,6 @@ services:
 
   space:
     image: makeplane/plane-space
-    # container_name: space
-    # build:
-    #   context: .
-    #   dockerfile: ./space/Dockerfile.space
-    #   args:
-    #     DOCKER_BUILDKIT: 1
     restart: always
     command: /usr/local/bin/start.sh space/server.js space
     depends_on:
@@ -32,12 +20,6 @@ services:
 
   api:
     image: makeplane/plane-backend
-    # container_name: api
-    # build:
-    #   context: ./apiserver
-    #   dockerfile: Dockerfile.api
-    #   args:
-    #     DOCKER_BUILDKIT: 1
     restart: always
     command: ./bin/takeoff
     env_file:
@@ -48,12 +30,6 @@ services:
 
   worker:
     image: makeplane/plane-worker
-    # container_name: bgworker
-    # build:
-    #   context: ./apiserver
-    #   dockerfile: Dockerfile.api
-    #   args:
-    #     DOCKER_BUILDKIT: 1
     restart: always
     command: ./bin/worker
     env_file:
@@ -65,12 +41,6 @@ services:
 
   beat-worker:
     image: makeplane/plane-worker
-    # container_name: beatworker
-    # build:
-    #   context: ./apiserver
-    #   dockerfile: Dockerfile.api
-    #   args:
-    #     DOCKER_BUILDKIT: 1
     restart: always
     command: ./bin/beat
     env_file:
@@ -116,13 +86,9 @@ services:
   # Comment this if you already have a reverse proxy running
   proxy:
     image: makeplane/plane-proxy
-    # container_name: proxy
-    # build:
-    #   context: ./nginx
-    #   dockerfile: Dockerfile
     restart: always
     ports:
-      - 4000:80
+      - 172.17.0.1:4000:80
     environment:
       FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
       BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
