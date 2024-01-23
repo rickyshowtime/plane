@@ -1,158 +1,164 @@
 version: "3.8"
 
-x-api-and-worker-env: &api-and-worker-env
-  DEBUG: ${DEBUG}
-  SENTRY_DSN: ${SENTRY_DSN}
-  DJANGO_SETTINGS_MODULE: plane.settings.production
-  DATABASE_URL: postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/${PGDATABASE}
-  REDIS_URL: redis://plane-redis:6379/
-  EMAIL_HOST: ${EMAIL_HOST}
-  EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-  EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-  EMAIL_PORT: ${EMAIL_PORT}
-  EMAIL_FROM: ${EMAIL_FROM}
-  EMAIL_USE_TLS: ${EMAIL_USE_TLS}
-  EMAIL_USE_SSL: ${EMAIL_USE_SSL}
-  AWS_REGION: ${AWS_REGION}
-  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-  AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
-  AWS_S3_ENDPOINT_URL: ${AWS_S3_ENDPOINT_URL}
-  FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT}
-  WEB_URL: ${WEB_URL}
-  GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-  DISABLE_COLLECTSTATIC: 1
-  DOCKERIZED: 1
-  OPENAI_API_BASE: ${OPENAI_API_BASE}
-  OPENAI_API_KEY: ${OPENAI_API_KEY}
-  GPT_ENGINE: ${GPT_ENGINE}
-  SECRET_KEY: ${SECRET_KEY}
-  DEFAULT_EMAIL: ${DEFAULT_EMAIL}
-  DEFAULT_PASSWORD: ${DEFAULT_PASSWORD}
-  USE_MINIO: ${USE_MINIO}
-  ENABLE_SIGNUP: ${ENABLE_SIGNUP}
+x-app-env: &app-env
+  environment:
+    - NGINX_PORT=${NGINX_PORT:-80}
+    - WEB_URL=${WEB_URL}
+    - DEBUG=${DEBUG}
+    - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-plane.settings.production} # deprecated
+    - NEXT_PUBLIC_DEPLOY_URL=${NEXT_PUBLIC_DEPLOY_URL} # deprecated
+    - SENTRY_DSN=${SENTRY_DSN}
+    - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-"production"}
+    - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-""}
+    - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-""}
+    - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-""}
+    - DOCKERIZED=${DOCKERIZED:-1} # deprecated
+    - CORS_ALLOWED_ORIGINS=${NEXT_PUBLIC_API_BASE_URL}
+    # Gunicorn Workers
+    - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+    #DB SETTINGS
+    - PGHOST=${PGHOST}
+    - PGDATABASE=${PGDATABASE}
+    - POSTGRES_USER=${PGUSER}
+    - POSTGRES_PASSWORD=${PGPASSWORD}
+    - POSTGRES_DB=${PGDATABASE}
+    - PGDATA=${PGDATA:-/var/lib/postgresql/data}
+    - DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/${PGDATABASE}
+    # REDIS SETTINGS
+    - REDIS_HOST=plane-redis
+    - REDIS_PORT=6379
+    - REDIS_URL=redis://plane-redis:6379/
+    # EMAIL SETTINGS - Deprecated can be configured through admin panel
+    - EMAIL_HOST=${EMAIL_HOST}
+    # - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
+    # - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-""}
+    - EMAIL_PORT=${EMAIL_PORT}
+    - EMAIL_FROM=${EMAIL_FROM}
+    - EMAIL_USE_TLS=${EMAIL_USE_TLS:-0}
+    - EMAIL_USE_SSL=${EMAIL_USE_SSL:-0}
+    - DEFAULT_EMAIL=${DEFAULT_EMAIL}
+    - DEFAULT_PASSWORD=${DEFAULT_PASSWORD}
+    # OPENAI SETTINGS - Deprecated can be configured through admin panel
+    - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
+    - OPENAI_API_KEY=${OPENAI_API_KEY:-""}
+    - GPT_ENGINE=${GPT_ENGINE:-"gpt-3.5-turbo"}
+    # LOGIN/SIGNUP SETTINGS - Deprecated can be configured through admin panel
+    - ENABLE_SIGNUP=${ENABLE_SIGNUP:-1}
+    - ENABLE_EMAIL_PASSWORD=${ENABLE_EMAIL_PASSWORD:-1}
+    - ENABLE_MAGIC_LINK_LOGIN=${ENABLE_MAGIC_LINK_LOGIN:-0}
+    # Application secret
+    - SECRET_KEY=${NEXTAUTH_SECRET}
+    # DATA STORE SETTINGS
+    - USE_MINIO=1
+    - AWS_REGION=${AWS_REGION:-""}
+    - AWS_ACCESS_KEY_ID=root
+    - AWS_SECRET_ACCESS_KEY=${ADMIN_PASSWORD}
+    - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL:-http://plane-minio:9000}
+    - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-uploads}
+    - MINIO_ROOT_USER=root
+    - MINIO_ROOT_PASSWORD=${ADMIN_PASSWORD}
+    - BUCKET_NAME=${BUCKET_NAME:-uploads}
+    - FILE_SIZE_LIMIT=${FILE_SIZE_LIMIT:-5242880}
 
 services:
-  planefrontend:
+  web:
+    <<: *app-env
     image: makeplane/plane-frontend:${SOFTWARE_VERSION_TAG}
     restart: always
-    command: /usr/local/bin/start.sh apps/app/server.js app
-    env_file:
-      - .env
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
-      NEXT_PUBLIC_DEPLOY_URL: ${NEXT_PUBLIC_DEPLOY_URL}
-      NEXT_PUBLIC_GOOGLE_CLIENTID: "0"
-      NEXT_PUBLIC_GITHUB_APP_NAME: "0"
-      NEXT_PUBLIC_GITHUB_ID: "0"
-      NEXT_PUBLIC_SENTRY_DSN: "0"
-      NEXT_PUBLIC_ENABLE_OAUTH: "0"
-      NEXT_PUBLIC_ENABLE_SENTRY: "0"
-      NEXT_PUBLIC_ENABLE_SESSION_RECORDER: "0"
-      NEXT_PUBLIC_TRACK_EVENTS: "0"
+    command: /usr/local/bin/start.sh web/server.js web
     depends_on:
-      - planebackend
-      - plane-worker
+      - api
+      - worker
 
-  planebackend:
+  space:
+    <<: *app-env
+    image: makeplane/plane-space:${SOFTWARE_VERSION_TAG}
+    restart: always
+    command: /usr/local/bin/start.sh space/server.js space
+    depends_on:
+      - api
+      - worker
+      - web
+
+  api:
+    <<: *app-env
     image: makeplane/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/takeoff
-    env_file:
-      - .env
-    environment:
-      <<: *api-and-worker-env
     depends_on:
       - plane-db
       - plane-redis
 
-  plane-worker:
-    image: makeplane/plane-worker:${SOFTWARE_VERSION_TAG}
+  worker:
+    <<: *app-env
+    image: makeplane/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/worker
-    env_file:
-      - .env
-    environment:
-      <<: *api-and-worker-env
     depends_on:
-      - planebackend
+      - api
       - plane-db
       - plane-redis
 
-  plane-beat-worker:
-    image: makeplane/plane-worker:${SOFTWARE_VERSION_TAG}
+  beat-worker:
+    <<: *app-env
+    image: makeplane/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/beat
-    env_file:
-      - .env
-    environment:
-      <<: *api-and-worker-env
     depends_on:
-      - planebackend
+      - api
       - plane-db
       - plane-redis
 
   plane-db:
+    <<: *app-env
     image: elestio/postgres:15
     restart: always
     command: postgres -c 'max_connections=1000'
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-    env_file:
-      - .env
     ports:
       - 172.17.0.1:2489:5432
-    environment:
-      POSTGRES_USER: ${PGUSER}
-      POSTGRES_DB: ${PGDATABASE}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      PGDATA: /var/lib/postgresql/data
 
   plane-redis:
+    <<: *app-env
     image: elestio/redis:6.0
     restart: always
     volumes:
       - ./redisdata:/data
 
   plane-minio:
-    image: minio/minio
+    <<: *app-env
+    image: elestio/minio:latest
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: ${ADMIN_PASSWORD}
     restart: always
     command: server /export --console-address ":9090"
     volumes:
       - ./uploads:/export
-    env_file:
-      - .env
-    environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
 
-  createbuckets:
-    image: minio/mc
-    entrypoint: >
-      /bin/sh -c " /usr/bin/mc config host add plane-minio http://plane-minio:9000 \$AWS_ACCESS_KEY_ID \$AWS_SECRET_ACCESS_KEY; /usr/bin/mc mb plane-minio/\$AWS_S3_BUCKET_NAME; /usr/bin/mc anonymous set download plane-minio/\$AWS_S3_BUCKET_NAME; exit 0; "
-    env_file:
-      - .env
-    depends_on:
-      - plane-minio
+  # createbuckets:
+  #   image: minio/mc
+  #   entrypoint: >
+  #     /bin/sh -c " /usr/bin/mc config host add plane-minio http://plane-minio:9000 \root \$ADMIN_PASSWORD; /usr/bin/mc mb plane-minio/\uploads; /usr/bin/mc anonymous set download plane-minio/\uploads; exit 0; "
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - plane-minio
 
   # Comment this if you already have a reverse proxy running
-  plane-proxy:
+  proxy:
+    <<: *app-env
     image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
     ports:
       - 172.17.0.1:2845:80
-    env_file:
-      - .env
-    environment:
-      FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
-      BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - planefrontend
-      - planebackend
+      - web
+      - api
+      - space
 
   pgadmin4:
-    image: dpage/pgadmin4:latest
+    image: elestio/pgadmin:latest
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
