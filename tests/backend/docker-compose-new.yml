@@ -29,7 +29,7 @@ services:
       - plane-redis
 
   worker:
-    image: makeplane/plane-worker
+    image: elestio4test/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/worker
     env_file:
@@ -40,7 +40,7 @@ services:
       - plane-redis
 
   beat-worker:
-    image: makeplane/plane-worker
+    image: elestio4test/plane-backend:${SOFTWARE_VERSION_TAG}
     restart: always
     command: ./bin/beat
     env_file:
