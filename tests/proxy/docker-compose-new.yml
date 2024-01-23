@@ -10,7 +10,7 @@ services:
       - worker
 
   space:
-    image: elestio4test/plane-space:${SOFTWARE_VERSION_TAG}
+    image: makeplane/plane-space
     restart: always
     command: /usr/local/bin/start.sh space/server.js space
     depends_on:
@@ -85,7 +85,7 @@ services:
 
   # Comment this if you already have a reverse proxy running
   proxy:
-    image: makeplane/plane-proxy
+    image: elestio4test/plane-proxy:${SOFTWARE_VERSION_TAG}
     restart: always
     ports:
       - 172.17.0.1:4000:80

@@ -150,6 +150,7 @@ services:
   proxy:
     <<: *app-env
     image: makeplane/plane-proxy:${SOFTWARE_VERSION_TAG}
+    restart: always
     ports:
       - 172.17.0.1:2845:80
     depends_on:
