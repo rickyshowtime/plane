@@ -3,12 +3,12 @@ set -o allexport; source .env; set +o allexport;
 
 #wait until the server is ready
 echo "Waiting for software to be ready ..."
-sleep 120s;
+sleep 150s;
 
 target=$(docker-compose port proxy 80)
 
 
-curl http://${target}/api/licenses/instances/admins/sign-in/ \
+curl http://${target}/api/instances/admins/sign-in/ \
   -H 'accept: application/json, text/plain, */*' \
   -H 'accept-language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,he;q=0.6,zh-CN;q=0.5,zh;q=0.4,ja;q=0.3' \
   -H 'cache-control: no-cache' \

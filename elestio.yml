@@ -100,6 +100,8 @@ environments:
     value: "1"
   - key: "NGINX_PORT"
     value: "80"
+  - key: "NEXT_PUBLIC_DEPLOY_URL"
+    value: "https://[CI_CD_DOMAIN]/spaces"
 
 config:
   runTime: "dockerCompose"

@@ -109,6 +109,16 @@ services:
       - plane-db
       - plane-redis
 
+  migrator:
+    <<: *app-env
+    image: makeplane/plane-backend:${SOFTWARE_VERSION_TAG}
+    command: >
+      sh -c "python manage.py wait_for_db &&
+           python manage.py migrate"
+    depends_on:
+      - plane-db
+      - plane-redis
+
   plane-db:
     <<: *app-env
     image: elestio/postgres:15
