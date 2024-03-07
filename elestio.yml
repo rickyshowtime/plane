@@ -54,6 +54,8 @@ environments:
     value: "random_password"
   - key: "PGHOST"
     value: "plane-db"
+  - key: "PGSCHEMA"
+    value: "public"
   - key: "ADMIN_EMAIL"
     value: "[EMAIL]"
   - key: "ADMIN_PASSWORD"
