@@ -86,7 +86,7 @@ services:
     restart: always
     command: ./bin/takeoff
     depends_on:
-      - plane-db
+      #- plane-db
       - plane-redis
 
   worker:
@@ -96,7 +96,7 @@ services:
     command: ./bin/worker
     depends_on:
       - api
-      - plane-db
+      #- plane-db
       - plane-redis
 
   beat-worker:
@@ -106,7 +106,7 @@ services:
     command: ./bin/beat
     depends_on:
       - api
-      - plane-db
+      #- plane-db
       - plane-redis
 
   migrator:
@@ -116,7 +116,7 @@ services:
       sh -c "python manage.py wait_for_db &&
            python manage.py migrate"
     depends_on:
-      - plane-db
+      #- plane-db
       - plane-redis
 
   plane-db:
@@ -136,16 +136,16 @@ services:
     volumes:
       - ./redisdata:/data
 
-  plane-minio:
-    <<: *app-env
-    image: elestio/minio:latest
-    environment:
-      MINIO_ROOT_USER: root
-      MINIO_ROOT_PASSWORD: ${ADMIN_PASSWORD}
-    restart: always
-    command: server /export --console-address ":9090"
-    volumes:
-      - ./uploads:/export
+  #plane-minio:
+  #  <<: *app-env
+  #  image: elestio/minio:latest
+  #  environment:
+  #    MINIO_ROOT_USER: root
+  #    MINIO_ROOT_PASSWORD: ${ADMIN_PASSWORD}
+  #  restart: always
+  #  command: server /export --console-address ":9090"
+  #  volumes:
+  #    - ./uploads:/export
 
   proxy:
     <<: *app-env
@@ -158,14 +158,14 @@ services:
       - api
       - space
 
-  pgadmin4:
-    image: elestio/pgadmin:latest
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
-      PGADMIN_LISTEN_PORT: 8080
-    ports:
-      - "172.17.0.1:8145:8080"
-    volumes:
-      - ./servers.json:/pgadmin4/servers.json
+  #pgadmin4:
+  #  image: elestio/pgadmin:latest
+  #  restart: always
+  #  environment:
+  #    PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+  #    PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+  #    PGADMIN_LISTEN_PORT: 8080
+  #  ports:
+  #    - "172.17.0.1:8145:8080"
+  #  volumes:
+  #    - ./servers.json:/pgadmin4/servers.json
