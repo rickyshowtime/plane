@@ -25,9 +25,9 @@ x-app-env: &app-env
     - PGDATA=${PGDATA:-/var/lib/postgresql/data}
     - DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:5432/${PGDATABASE}?currentSchema=${PGSCHEMA:-public}
     # REDIS SETTINGS
-    - REDIS_HOST=plane-redis
-    - REDIS_PORT=6379
-    - REDIS_URL=redis://plane-redis:6379/
+    - REDIS_HOST=${REDIS_HOST:-plane-redis}
+    - REDIS_PORT=${REDIS_PORT:-6379}
+    - REDIS_URL=${REDIS_URL:-redis://plane-redis:6379/}
     # EMAIL SETTINGS - Deprecated can be configured through admin panel
     - EMAIL_HOST=${EMAIL_HOST}
     # - EMAIL_HOST_USER=${EMAIL_HOST_USER:-""}
@@ -119,15 +119,15 @@ services:
       #- plane-db
       - plane-redis
 
-  plane-db:
-    <<: *app-env
-    image: elestio/postgres:15
-    restart: always
-    command: postgres -c 'max_connections=1000'
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
-    ports:
-      - 172.17.0.1:2489:5432
+  #plane-db:
+  #  <<: *app-env
+  #  image: elestio/postgres:15
+  #  restart: always
+  #  command: postgres -c 'max_connections=1000'
+  #  volumes:
+  #    - ./pgdata:/var/lib/postgresql/data
+  #  ports:
+  #    - 172.17.0.1:2489:5432
 
   plane-redis:
     <<: *app-env
@@ -156,7 +156,7 @@ services:
     depends_on:
       - web
       - api
-      - space
+      #- space
 
   #pgadmin4:
   #  image: elestio/pgadmin:latest
